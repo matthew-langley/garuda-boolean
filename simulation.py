@@ -11,8 +11,88 @@ import argparse
 import boolean2 as bn
 import itertools as it
 import multiprocessing as mp
+import multiprocessing.forking as forking
 import os
 import re
+import sys
+
+
+def fix_multiprocessing_for_exe():
+    """
+    Code snippet to make multiprocessing work properly on Windows when frozen  
+    into a .exe using pyinstaller.
+    [1] https://github.com/pyinstaller/pyinstaller/wiki/Recipe-Multiprocessing
+    """
+    mp.freeze_support()
+    if sys.platform.startswith('win'):
+        # First define a modified version of Popen.
+        class _Popen(forking.Popen):
+            def __init__(self, *args, **kw):
+                if hasattr(sys, 'frozen'):
+                    # We have to set original _MEIPASS2 value from sys._MEIPASS
+                    # to get --onefile mode working.
+                    os.putenv('_MEIPASS2', sys._MEIPASS)
+                try:
+                    super(_Popen, self).__init__(*args, **kw)
+                finally:
+                    if hasattr(sys, 'frozen'):
+                        # On some platforms (e.g. AIX) 'os.unsetenv()' is not
+                        # available. In those cases we cannot delete the variable
+                        # but only set it to the empty string. The bootloader
+                        # can handle this case.
+                        if hasattr(os, 'unsetenv'):
+                            os.unsetenv('_MEIPASS2')
+                        else:
+                            os.putenv('_MEIPASS2', '')
+                            
+        # Second override 'Popen' class with our modified version.
+        forking.Popen = _Popen
+  
+
+def read_parameters(args, paramFile):
+    """
+    Reads command line arguments specifiying parameters for Boolean simulation 
+    from a specified file
+    
+    Args:
+        args (argparse.Namespace)
+            Current arguments object from argparse
+        paramFile (str)
+            Filepath to parameters file
+    
+    Returns:
+        (argparse.Namespace)
+            Updated arguments object, with arguments added as specified in 
+            paramFile
+    """
+    
+    with open(paramFile, 'r') as f:
+        for line in f:
+            # Ignore any comments and blank lines
+            if len(line.strip()) > 0 and (not line.startswith('#')):
+                param, value = [x.strip() for x in line.split('=')]
+                if param == 'runs':
+                    args.runs = int(value)
+                elif param == 'steps':
+                    args.steps = int(value)
+                elif param == 'mode':
+                    if value == 'sync':
+                        args.mode = 'sync'
+                    else:
+                        args.mode = 'async'
+                elif param == 'writeStateDict':
+                    if value in ['True', 'true', 'T', 't', '1', 'Yes', 'Y', 'y']:
+                        args.writeStateDict = True
+                    else:
+                        args.writeStateDict = False
+                elif param == 'writeEdgeDict':
+                    if value in ['True', 'true', 'T', 't', '1', 'Yes', 'Y', 'y']:
+                        args.writeEdgeDict = True
+                    else:
+                        args.writeEdgeDict = False
+    
+    return args
+  
 
 def simulate(modelText, mode='async', steps=100, runs=100, nprocesses=None):
     """
@@ -318,11 +398,17 @@ if __name__ == '__main__':
     arguments.
     """
     
+    # Configure multiprocessing to work properly in frozen .exe version
+    fix_multiprocessing_for_exe()
+    
     # Configure command line arguments
     parser = argparse.ArgumentParser(description='Simulate a Boolean network.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('model',
                         help='File describing the Boolean network to be simulated')
+    parser.add_argument('parameters',
+                        nargs='?',
+                        help='(optional) File containing simulation parameters described below')
     parser.add_argument('--output',
                         help='Output file destination')
     parser.add_argument('--runs',
@@ -334,7 +420,7 @@ if __name__ == '__main__':
                         dest='steps',
                         type=int,
                         default=100,
-                        help='Number of steps per simulation')
+                        help='Number of Boolean update steps per simulation')
     parser.add_argument('--processes',
                         dest='nprocesses',
                         type=int,
@@ -345,12 +431,12 @@ if __name__ == '__main__':
                            dest='mode',
                            action='store_const',
                            const='sync',
-                           help='Random subset of genes updated at each step')
+                           help='All genes are updated at each step')
     modeGroup.add_argument('--async',
                            dest='mode',
                            action='store_const',
                            const='async',
-                           help='All genes are updated at each step')
+                           help='Random subset of genes updated at each step')
     parser.add_argument('--writeStateDict',
                          dest='writeStateDict',
                          action='store_true',
@@ -365,10 +451,14 @@ if __name__ == '__main__':
     # Switch between listening to command-line arguments or hard-coded 
     # arguments depending on whether running in IDE or from cmd.
     if any([name.startswith('SPYDER') for name in os.environ]):
-        myArgs = 'test/test_model.txt --runs 50 --steps 10 --processes 2 --async --writeStateDict --writeEdgeDict'
+        myArgs = 'test/test_model.txt test/test_params.txt --output test/test_output.gml --runs 50 --steps 10 --processes 2 --async --writeStateDict --writeEdgeDict'
         args = parser.parse_args(myArgs.split())
     else:
         args = parser.parse_args()
+    
+    # If a parameter file is specified, read in parameters from there.
+    if args.parameters is not None:
+        args = read_parameters(args, args.parameters)
     
     # Default to asyncrhonous simulation mode.
     if args.mode is None:
@@ -394,7 +484,7 @@ if __name__ == '__main__':
     
     # Write the results (state transition graph) to file.
     if args.output is None:
-        args.output = args.model.rsplit('.', 1)[0] + '_output.gml'    
+        args.output = '../Output/' + args.model.rsplit('.', 1)[0] + '_output.gml'
     write_gml(stateDict, edgeDict, args.output)
     
     # If requested, write state and/or edge dictionaries to file.
