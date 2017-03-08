@@ -346,7 +346,7 @@ def write_edge_dictionary(edgeDict, outputFile):
         f.write(outputText)
         
         
-def write_gml(stateDict, edgeDict, outputFile):
+def write_gml(stateDict, edgeDict, outputFile, graphName):
     """
     Writes the results of the simulation (i.e. the directed graph representing 
     the simulation's state transition graph) to file in the Graph Modeling 
@@ -372,6 +372,7 @@ def write_gml(stateDict, edgeDict, outputFile):
     lines = []
     lines.append('graph [')
     lines.append('        directed 1')
+    lines.append('        name "%s"' %(graphName))
     for k,v in stateDict.items():
         lines.append('        node [')
         lines.append('               id %i' %(k))
@@ -384,7 +385,7 @@ def write_gml(stateDict, edgeDict, outputFile):
         lines.append('        edge [')
         lines.append('               source %i' %(s))
         lines.append('               target %i' %(t))
-        lines.append('               frequency %i' %(f))
+        lines.append('               weight %i' %(f))
         lines.append('        ]')
     lines.append(']')
     
@@ -451,7 +452,7 @@ if __name__ == '__main__':
     # Switch between listening to command-line arguments or hard-coded 
     # arguments depending on whether running in IDE or from cmd.
     if any([name.startswith('SPYDER') for name in os.environ]):
-        myArgs = 'test/test_model.txt test/test_params.txt --output test/test_output.gml --runs 50 --steps 10 --processes 2 --async --writeStateDict --writeEdgeDict'
+        myArgs = 'test/test_model.txt --output test/test_output.gml --runs 50 --steps 10 --processes 2 --async --writeStateDict --writeEdgeDict'
         args = parser.parse_args(myArgs.split())
     else:
         args = parser.parse_args()
@@ -485,7 +486,8 @@ if __name__ == '__main__':
     # Write the results (state transition graph) to file.
     if args.output is None:
         args.output = '../Output/' + args.model.rsplit('.', 1)[0] + '_output.gml'
-    write_gml(stateDict, edgeDict, args.output)
+    graphName = args.model.rsplit('/', 1)[1].rsplit('.', 1)[0]
+    write_gml(stateDict, edgeDict, args.output, graphName)
     
     # If requested, write state and/or edge dictionaries to file.
     if args.writeStateDict is True:
