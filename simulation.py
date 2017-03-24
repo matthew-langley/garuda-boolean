@@ -80,6 +80,8 @@ def read_parameters(args, paramFile):
                         args.mode = 'sync'
                     else:
                         args.mode = 'async'
+                elif param == 'processes':
+                    args.nprocesses = int(value)
                 elif param == 'writeStateDict':
                     if value in ['True', 'true', 'T', 't', '1', 'Yes', 'Y', 'y']:
                         args.writeStateDict = True
@@ -484,9 +486,14 @@ if __name__ == '__main__':
     edgeDict = make_edge_dictionary(trajectories)
     
     # Write the results (state transition graph) to file.
+    if '\\' in args.model:
+        args.model = args.model.replace('\\', '/')
+    if '/' in args.model:
+        graphName = args.model.rsplit('/', 1)[1].rsplit('.', 1)[0]
+    else:
+        graphName = args.model.rsplit('.', 1)[0]
     if args.output is None:
-        args.output = '../Output/' + args.model.rsplit('.', 1)[0] + '_output.gml'
-    graphName = args.model.rsplit('/', 1)[1].rsplit('.', 1)[0]
+        args.output = '../Output/' + graphName + '_output.gml'
     write_gml(stateDict, edgeDict, args.output, graphName)
     
     # If requested, write state and/or edge dictionaries to file.

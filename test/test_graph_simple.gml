@@ -3,66 +3,75 @@ graph [
   name "SimpleGraphWithSCCs"
   node [
     id 0
-    label 0
-	A 0
-	B 0
-	C 0
+    label "0"
+    A 0
+    C 0
+    B 0
+    membership "SCC2"
   ]
   node [
     id 1
-    label 1
-	A 0
-	B 0
-	C 0
+    label "1"
+    A 0
+    C 0
+    B 0
+    membership "SCC2"
   ]
   node [
     id 2
-    label 2
-	A 1
-	B 0
-	C 0
+    label "2"
+    A 1
+    C 0
+    B 0
+    membership "SCC2"
   ]
   node [
     id 3
-    label 3
-	A 0
-	B 1
-	C 0
+    label "3"
+    A 0
+    C 0
+    B 1
+    membership "SCC2"
   ]
   node [
     id 4
-    label 10
-	A 1
-	B 1
-	C 0
+    label "10"
+    A 1
+    C 0
+    B 1
+    membership "SCC1"
   ]
   node [
     id 5
-    label 11
-	A 0
-	B 0
-	C 1
+    label "11"
+    A 0
+    C 1
+    B 0
+    membership "SCC1"
   ]
   node [
     id 6
-    label 12
-	A 1
-	B 0
-	C 1
+    label "12"
+    A 1
+    C 1
+    B 0
+    membership "SCC1"
   ]
   node [
     id 7
-    label 13
-	A 0
-	B 1
-	C 1
+    label "13"
+    A 0
+    C 1
+    B 1
+    membership "SCC1"
   ]
   node [
     id 8
-    label 14
-	A 1
-	B 1
-	C 1
+    label "14"
+    A 1
+    C 1
+    B 1
+    membership "SCC1"
   ]
   edge [
     source 0

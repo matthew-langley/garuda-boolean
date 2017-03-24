@@ -40,10 +40,26 @@ def expression_profile(scc):
     
     # If steady state, convert dictionary to Series and return
     if len(scc.nodes()) == 1:
-        return pd.Series(scc.nodes[0], dtype=float)
+        n = scc.nodes()[0]
+        return pd.Series(scc.node[n], dtype=float, name=scc.graph['name'])
         
     # Else calculate the node probabilities of SCC and do the weighted average
     else:
+        
+        # Start by normalizing the edges in the SCC
+        # Needed because we're calculating an *internal* SCC node probability,
+        # considering only edges within SCC. The edge weights on the argument 
+        # 'scc' are weighted by edges external to the SCC as well. Thus, the
+        # edges need to be recalculated.
+        for node in scc:
+            TotalSum = 0
+            for [s,t] in list(scc.edges_iter(node)): #list of edges of "starting from the node"
+                TotalSum = TotalSum + float(scc[s][t]['weight'])
+            #print "node,total passing in the SCC%s= %s,%s" %(SCCnum,node,TotalSum)
+
+            for [s,t] in list(scc.edges_iter(node)): #weight = (times of passing)/(total passing)
+                scc[s][t]['weight'] = float(scc[s][t]['weight'])/float(TotalSum)        
+        
         equationList = []
         count_target = 0
         for node_t in scc:
@@ -100,11 +116,19 @@ if __name__ == '__main__':
                         action='store_true',
                         default=False,
                         help='Write GML representations of identified SCCs and SSs to file')
+    parser.add_argument('--annotateGraph',
+                        dest='annotateGraph',
+                        action='store_true',
+                        default=False,
+                        help='Annotate nodes in input graph with SCC/SS membership')
                            
     # Switch between listening to command-line arguments or hard-coded 
     # arguments depending on whether running in IDE or from cmd.
     if any([name.startswith('SPYDER') for name in os.environ]):
-        myArgs = 'test/test_graph_simple.gml --output test/test_graph_scc_expression.csv --writeSubgraphs'
+        # myArgs = 'test/test_output.gml --output test/test_output_scc_profiles.csv --annotateGraph'
+        # myArgs = 'test/test_graph_simple.gml --output test/test_graph_simple_scc_profiles.csv --annotateGraph'
+        # myArgs = 'test/ES_2iL+B-A_output.gml --output test/ES_2iL+B-A_output_scc_profiles.csv --annotateGraph'
+        myArgs = 'test/test_graph_simple.gml --output Output/test_graph_simple_scc_profiles.csv --annotateGraph'
         args = parser.parse_args(myArgs.split())
     else:
         args = parser.parse_args()
@@ -112,17 +136,25 @@ if __name__ == '__main__':
     # Make a networkx representation of the state transition graph
     G = nx.read_gml(args.graph)
     
+    # CLear any existing membership annotations
+    for n in G.nodes():
+        if 'membership' in G.node[n]:
+            del G.node[n]['membership']
+    
     # Determine the SCCs and steady states in the graph
     sccGenerator = nx.strongly_connected_component_subgraphs(G)
     sccList = []
-    ssList = []
     for scc in sccGenerator:
-        if len(scc.nodes()) == 1:
-            scc.graph['name'] = 'SS' + str(len(ssList) + 1)
-            ssList.append(scc)
-        elif len(scc.nodes()) > 1:
+        if len(scc.nodes()) > 1:
             scc.graph['name'] = 'SCC' + str(len(sccList) + 1)
             sccList.append(scc)
+    ssList = []
+    simple_cycles = nx.simple_cycles(G)
+    for cycle in simple_cycles:
+        if len(cycle) == 1:
+            subgraph = G.subgraph(cycle)
+            subgraph.graph['name'] = 'SS' + str(len(ssList) + 1)
+            ssList.append(subgraph)
     print 'Found %i strongly connected component(s) and %i steady states' %(len(sccList), len(ssList))
     
     # Calculate the expression profiles of each SCC and SS
@@ -134,7 +166,20 @@ if __name__ == '__main__':
     # Write GML for each SCC and SS if desired
     if args.writeSubgraphs is True:
         for scc in sccList + ssList:
-            gmlOutputFile = args.output.rsplit('/', 1)[0] + '/' + args.graph.rsplit('/', 1)[1].rsplit('.', 1)[0] + '_' + scc.graph['name'] + '.gml'
+            if '\\' in args.graph:
+                args.graph = args.graph.replace('\\', '/')
+            if '/' in args.graph:
+                graphName = args.graph.rsplit('/', 1)[1].rsplit('.', 1)[0]
+            else:
+                graphName = args.graph.rsplit('.', 1)[0]
+            gmlOutputFile = args.output.rsplit('/', 1)[0] + '/' + graphName + '_' + scc.graph['name'] + '.gml'
             nx.write_gml(scc, gmlOutputFile)
     
-    
+    # Annotate original graph file with SCC and SS membership if desired, 
+    # and pass along chain regardless
+    if args.annotateGraph is True:
+        for scc in sccList + ssList:
+            for n in scc.nodes():
+                G.node[n]['membership'] = scc.graph['name']
+    passthroughGraphFile = args.output.rsplit('/', 1)[0] + '/' + args.graph.rsplit('/', 1)[-1]
+    nx.write_gml(G, passthroughGraphFile, stringizer=str)

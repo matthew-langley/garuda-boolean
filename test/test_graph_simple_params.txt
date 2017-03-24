@@ -1,0 +1,60 @@
+# Graph layout algorithm
+# (choose from:
+#   attribute-circle
+#   attributes-layout
+#   circular
+#   degree-circle
+#   force-directed
+#   force-directed-cl
+#   fruchterman-rheingold
+#   grid
+#   hierachical
+#   isom
+#   kamada-kawai
+#   stacked-node-layout
+# * PCA
+# * referencePCA
+# )
+layout = grid
+
+# Reference states from experimental data
+# Absolutely required if using referencePCA layout!
+# Should be .csv file, with genes as columns and samples as rows
+refstates =
+
+# Assign node colours based on SCCs, steady states, etc.
+coloursubgraphs = True
+
+# Clear existing Cytoscape sessions and start with new session
+clearsession = True
+
+# Output graph with node layout positions to this file
+# File extension should be .json or .cyjs
+# Leave blank to omit output
+outputLayout = test_graph_simple_layout.json
+
+# Output graph with layout applied to an image
+# File extension should be one of: .png, .pdf, .svg
+# Leave blank to omit output
+outputImage = test_graph_simple_layout.png
+
+
+
+
+
+# Number of Boolean update steps per simulation
+steps = 10
+
+# Simulation mode (choose from: async, sync)
+# sync: All genes are updated at each step
+# async: Random subset of genes are updated at each step
+mode = async
+
+# Write resulting state dictionary to file
+writeStateDict = True
+
+# Write resulting edge dictionary to file
+writeEdgeDict = True
+
+# Number of processes used to run simulation
+processes = 1
