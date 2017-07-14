@@ -144,17 +144,22 @@ if __name__ == '__main__':
     # Determine the SCCs and steady states in the graph
     sccGenerator = nx.strongly_connected_component_subgraphs(G)
     sccList = []
+    ssList = []
     for scc in sccGenerator:
         if len(scc.nodes()) > 1:
             scc.graph['name'] = 'SCC' + str(len(sccList) + 1)
             sccList.append(scc)
-    ssList = []
-    simple_cycles = nx.simple_cycles(G)
-    for cycle in simple_cycles:
-        if len(cycle) == 1:
-            subgraph = G.subgraph(cycle)
-            subgraph.graph['name'] = 'SS' + str(len(ssList) + 1)
-            ssList.append(subgraph)
+        else:
+        # NB: Not all SCCs of size = 1 are steady states! Transition states
+        # count as SCCs too in the purest graph-theory sense.
+        # http://www.geeksforgeeks.org/strongly-connected-components/
+        # So need to check if SCC consists of only one node with only one
+        # (self-edge). i.e. set of 
+        if scc.edges() != []:
+            sourceNode = scc.edges()[0][0]
+            if set([sourceNode]) == set(G.successors(sourceNode)):
+                scc.graph['name'] = 'SS' + str(len(ssList) + 1)
+                ssList.append(scc)
     print 'Found %i strongly connected component(s) and %i steady states' %(len(sccList), len(ssList))
     
     # Calculate the expression profiles of each SCC and SS
