@@ -11,13 +11,6 @@ import numpy as np
 import os
 import argparse
 
-def binarize(**kwargs):
-    """
-    Convenience wrapper of discretize() used for grouping expression data into 
-    two groups - ON and OFF. Can pass additional arguments to discretize() as
-    **kwargs.
-    """
-    return discretize(k=2, **kwargs)
 
 def discretize(inputFile, outputFile=None, inputFileType='csv', k=2, 
                invertOrder=False, perGene=True):
@@ -127,6 +120,7 @@ if __name__ == '__main__':
     parser.add_argument('--k',
                         dest='k',
                         type=int,
+                        default=2,
                         help='Number of levels')
     parser.add_argument('--invertOrder',
                         dest='invertOrder',
@@ -150,7 +144,7 @@ if __name__ == '__main__':
     if args.output is None:
         if '\\' in args.input:
             args.input = args.input.replace('\\', '/')
-        args.output = '../Output/' + args.input.rsplit('/', 1)[-1].rsplit('.', 1)[0] + '_binarized.csv'
+        args.output = '../Output/' + args.input.rsplit('/', 1)[-1].rsplit('.', 1)[0] + '_discretized.csv'
     
-    discretize(inputFile=args.input, outputFile=args.output, k=args.k,
-               invertOrder=args.invertOrder, perGene=args.perGene)
+    results = discretize(inputFile=args.input, outputFile=args.output, k=args.k,
+                         invertOrder=args.invertOrder, perGene=args.perGene)

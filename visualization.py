@@ -257,13 +257,13 @@ if __name__ == '__main__':
                   '--clearsession --outputLayout test/test_graph_simple_layout.json '
                   '--outputImage test/test_graph_simple_layout.png')
         """
-        """
+        
         myArgs = ('test/test_output.gml --layout referencePCA '
                   '--refstates test/test_refstates.csv --coloursubgraphs '
                   '--clearsession --outputLayout test/test_ouput_layout.json '
                   '--outputImage test/test_output_layout.png')
-        """
-        myArgs = 'test/test_graph_simple.gml test/test_graph_simple_params.txt'
+        
+        # myArgs = 'test/test_graph_simple.gml test/test_graph_simple_params.txt'
         args = parser.parse_args(myArgs.split())
     else:
         args = parser.parse_args()
@@ -342,34 +342,40 @@ if __name__ == '__main__':
     # Apply colour based on SCC / SS
     if args.coloursubgraphs is True:
         cyGraphTable = cyGraph.get_node_table()
-        nSCC = cyGraphTable[cyGraphTable['membership'].str.contains('SCC')].shape[0]
-        nSS = cyGraphTable[cyGraphTable['membership'].str.contains('SS')].shape[0]
-        sccColors = sns.color_palette('husl', nSCC).as_hex()
-        ssColors = sns.color_palette('husl', nSS).as_hex()
-        colorMappings = {}
-        i = 0
-        j = 0
-        for label in cyGraphTable['membership'].unique().tolist():
-            if label not in colorMappings:
-                if 'SCC' in label:
-                    colorMappings[label] = sccColors[i]
-                    i += 1
-                elif 'SS' in label:
-                    colorMappings[label] = ssColors[j]
-                    j += 1
-        colorMappings['reference'] = '#9575CD'
-        booleanStyle.create_discrete_mapping(column='membership',
-                                             vp='NODE_FILL_COLOR',
-                                             mappings=colorMappings)
+        hasAttractors = False
+        try:
+            nSCC = cyGraphTable[cyGraphTable['membership'].str.contains('SCC')].shape[0]
+            nSS = cyGraphTable[cyGraphTable['membership'].str.contains('SS')].shape[0]
+            hasAttractors = True
+        except ValueError:
+            hasAttractors = False
+        
+        if hasAttractors is True:
+            sccColors = sns.color_palette('husl', nSCC).as_hex()
+            ssColors = sns.color_palette('husl', nSS).as_hex()
+            colorMappings = {}
+            i = 0
+            j = 0
+            for label in cyGraphTable['membership'].unique().tolist():
+                if label not in colorMappings:
+                    if 'SCC' in label:
+                        colorMappings[label] = sccColors[i]
+                        i += 1
+                    elif 'SS' in label:
+                        colorMappings[label] = ssColors[j]
+                        j += 1
+            colorMappings['reference'] = '#9575CD'
+            booleanStyle.create_discrete_mapping(column='membership',
+                                                 vp='NODE_FILL_COLOR',
+                                                 mappings=colorMappings)
     
-    # Or apply colour by reference vs. simulation
-    else:
-        booleanStyle.create_discrete_mapping(column='datasource',
-                                         vp='NODE_FILL_COLOR',
-                                         mappings={
-                                             'reference': '#9575CD',
-                                             'simulation': '#4DD0E1'
-                                         })
+    # Apply colour by reference vs. simulation
+    booleanStyle.create_discrete_mapping(column='datasource',
+                                     vp='NODE_FILL_COLOR',
+                                     mappings={
+                                         'reference': '#9575CD',
+                                         'simulation': '#4DD0E1'
+                                     })
     
     # Push styles to Cytoscape
     cy.style.apply(style=booleanStyle, network=cyGraph)

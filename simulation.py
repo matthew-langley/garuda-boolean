@@ -407,8 +407,10 @@ if __name__ == '__main__':
     # Configure command line arguments
     parser = argparse.ArgumentParser(description='Simulate a Boolean network.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('model',
+    parser.add_argument('rules',
                         help='File describing the Boolean network to be simulated')
+    parser.add_argument('initials',
+                        help='File describing initial state of all elements in network')
     parser.add_argument('parameters',
                         nargs='?',
                         help='(optional) File containing simulation parameters described below')
@@ -454,7 +456,7 @@ if __name__ == '__main__':
     # Switch between listening to command-line arguments or hard-coded 
     # arguments depending on whether running in IDE or from cmd.
     if any([name.startswith('SPYDER') for name in os.environ]):
-        myArgs = 'test/test_model.txt --output test/test_output.gml --runs 50 --steps 10 --processes 2 --async --writeStateDict --writeEdgeDict'
+        myArgs = 'test/test_rules.txt test/test_initials.txt --output test/test_output.gml --runs 50 --steps 10 --processes 2 --async --writeStateDict --writeEdgeDict'
         args = parser.parse_args(myArgs.split())
     else:
         args = parser.parse_args()
@@ -468,8 +470,19 @@ if __name__ == '__main__':
         args.mode = 'async'
     
     # Make sure the specified model file actually exists.
-    if not os.path.isfile(args.model):
-        parser.error('The specified model file does not exist: %s' %(args.model))
+    if not os.path.isfile(args.rules):
+        parser.error('The specified model file does not exist: %s' %(args.rules))
+    elif not os.path.isfile(args.initials):
+        parser.error('The specified model file does not exist: %s' %(args.initials))
+    
+    # Read in the files and concatenate them.
+    initialsText = ''
+    with open(args.initials, 'r') as f:
+        initialsText = f.read()
+    rulesText = ''
+    with open(args.rules, 'r') as f:
+        rulesText = f.read()
+    args.model = initialsText + '\n' + rulesText
     
     # Simulate the Boolean network
     trajectories = simulate(modelText=args.model,
@@ -486,12 +499,12 @@ if __name__ == '__main__':
     edgeDict = make_edge_dictionary(trajectories)
     
     # Write the results (state transition graph) to file.
-    if '\\' in args.model:
-        args.model = args.model.replace('\\', '/')
-    if '/' in args.model:
-        graphName = args.model.rsplit('/', 1)[1].rsplit('.', 1)[0]
+    if '\\' in args.rules:
+        args.rules = args.rules.replace('\\', '/')
+    if '/' in args.rules:
+        graphName = args.rules.rsplit('/', 1)[1].rsplit('.', 1)[0]
     else:
-        graphName = args.model.rsplit('.', 1)[0]
+        graphName = args.rules.rsplit('.', 1)[0]
     if args.output is None:
         args.output = '../Output/' + graphName + '_output.gml'
     write_gml(stateDict, edgeDict, args.output, graphName)

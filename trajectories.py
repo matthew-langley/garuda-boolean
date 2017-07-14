@@ -35,19 +35,11 @@ def read_parameters(args, paramFile):
                     elif param == 'target':
                         args.target = int(value)
                     elif param == 'clusters':
-                        if value in ['True', 'true', 'T', 't', '1', 'Yes', 'Y', 'y']:
-                            args.coloursubgraphs = True
-                        else:
-                            args.coloursubgraphs = False
-                    elif param == 'clearsession':
-                        if value in ['True', 'true', 'T', 't', '1', 'Yes', 'Y', 'y']:
-                            args.clearsession = True
-                        else:
-                            args.clearsession = False
-                    elif param == 'outputLayout':
-                        args.outputLayout = str(value)
-                    elif param == 'outputImage':
-                        args.outputImage = str(value)
+                        args.clusters = int(value)
+                    elif param == 'linkage':
+                        args.linkage = str(linkage)
+                    elif param == 'distance':
+                        args.outputImage = str(distance)
     
     return args
 
