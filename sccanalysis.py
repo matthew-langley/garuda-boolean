@@ -52,11 +52,9 @@ def expression_profile(scc):
         # 'scc' are weighted by edges external to the SCC as well. Thus, the
         # edges need to be recalculated.
         for node in scc:
-            TotalSum = 0
-            for [s,t] in list(scc.edges_iter(node)): #list of edges of "starting from the node"
-                TotalSum = TotalSum + float(scc[s][t]['weight'])
+            TotalSum = sum([float(scc[s][t]['weight']) for s,t in scc.edges_iter(node)])
             #print "node,total passing in the SCC%s= %s,%s" %(SCCnum,node,TotalSum)
-
+            
             for [s,t] in list(scc.edges_iter(node)): #weight = (times of passing)/(total passing)
                 scc[s][t]['weight'] = float(scc[s][t]['weight'])/float(TotalSum)        
         
@@ -65,9 +63,10 @@ def expression_profile(scc):
         for node_t in scc:
             equation = []
             count_source = 0
+            t_predecessors = set(scc.predecessors(node_t))
             ### (+1.0) at the end of equation -> summation restriction
             for node_s in scc:  #create equation for target node for every possible pred.(if not: insert 0)
-                if node_s in set(scc.predecessors(node_t)):                    
+                if node_s in t_predecessors:                    
                     if count_target == count_source: # "= node_t" -> move from right term to left term
                         equation.append(scc[node_s][node_t]['weight'])#i[node_s][node_t]-1.0+1.0
                     else:
@@ -82,6 +81,7 @@ def expression_profile(scc):
     
             equationList.append(equation)
             count_target += 1
+            
         
         ##### solve simultaneous equations ==== Array of Node Probability for (i.nodes())####
         left = np.array(equationList)
@@ -128,7 +128,8 @@ if __name__ == '__main__':
         # myArgs = 'test/test_output.gml --output test/test_output_scc_profiles.csv --annotateGraph'
         # myArgs = 'test/test_graph_simple.gml --output test/test_graph_simple_scc_profiles.csv --annotateGraph'
         # myArgs = 'test/ES_2iL+B-A_output.gml --output test/ES_2iL+B-A_output_scc_profiles.csv --annotateGraph'
-        myArgs = 'test/test_graph_simple.gml --output Output/test_graph_simple_scc_profiles.csv --annotateGraph'
+        # myArgs = 'test/test_graph_simple.gml --output Output/test_graph_simple_scc_profiles.csv --annotateGraph'
+        myArgs = 'test/2017-06-30-LS/ayako-boolean-psc-jun2017-boolean-functions_output.gml --output test/2017-06-30-LS/ayako-boolean-psc-jun2017-boolean-functions_output_scc_profiles.csv'        
         args = parser.parse_args(myArgs.split())
     else:
         args = parser.parse_args()
