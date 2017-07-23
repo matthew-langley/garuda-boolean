@@ -1,0 +1,167 @@
+[ {
+  "format_version" : "1.0",
+  "generated_by" : "cytoscape-3.4.0",
+  "target_cytoscapejs_version" : "~2.1",
+  "title" : "Boolean",
+  "style" : [ {
+    "selector" : "node",
+    "css" : {
+      "color" : "rgb(66,66,66)",
+      "width" : 20.0,
+      "border-width" : 1.0,
+      "text-valign" : "center",
+      "text-halign" : "center",
+      "font-family" : "SansSerif.plain",
+      "font-weight" : "normal",
+      "shape" : "ellipse",
+      "font-size" : 8,
+      "border-opacity" : 1.0,
+      "border-color" : "rgb(66,66,66)",
+      "background-opacity" : 1.0,
+      "text-opacity" : 1.0,
+      "background-color" : "rgb(158,158,158)",
+      "height" : 20.0,
+      "content" : "data(name)"
+    }
+  }, {
+    "selector" : "node[membership = 'reference']",
+    "css" : {
+      "background-color" : "rgb(149,117,205)"
+    }
+  }, {
+    "selector" : "node[membership = 'SCC1']",
+    "css" : {
+      "background-color" : "rgb(213,140,50)"
+    }
+  }, {
+    "selector" : "node[membership = 'SCC2']",
+    "css" : {
+      "background-color" : "rgb(247,113,137)"
+    }
+  }, {
+    "selector" : "node[datasource = 'reference']",
+    "css" : {
+      "color" : "rgb(0,0,0)"
+    }
+  }, {
+    "selector" : "node[datasource = 'simulation']",
+    "css" : {
+      "color" : "rgb(66,66,66)"
+    }
+  }, {
+    "selector" : "node[datasource = 'reference']",
+    "css" : {
+      "width" : 40.0
+    }
+  }, {
+    "selector" : "node[datasource = 'simulation']",
+    "css" : {
+      "width" : 20.0
+    }
+  }, {
+    "selector" : "node[datasource = 'reference']",
+    "css" : {
+      "height" : 40.0
+    }
+  }, {
+    "selector" : "node[datasource = 'simulation']",
+    "css" : {
+      "height" : 20.0
+    }
+  }, {
+    "selector" : "node[datasource = 'reference']",
+    "css" : {
+      "width" : 40.0,
+      "height" : 40.0
+    }
+  }, {
+    "selector" : "node[datasource = 'simulation']",
+    "css" : {
+      "width" : 20.0,
+      "height" : 20.0
+    }
+  }, {
+    "selector" : "node[datasource = 'reference']",
+    "css" : {
+      "font-size" : 12
+    }
+  }, {
+    "selector" : "node[datasource = 'simulation']",
+    "css" : {
+      "font-size" : 8
+    }
+  }, {
+    "selector" : "node[ id = '62' ]",
+    "css" : {
+      "content" : "0"
+    }
+  }, {
+    "selector" : "node[ id = '63' ]",
+    "css" : {
+      "content" : "1"
+    }
+  }, {
+    "selector" : "node[ id = '64' ]",
+    "css" : {
+      "content" : "2"
+    }
+  }, {
+    "selector" : "node[ id = '65' ]",
+    "css" : {
+      "content" : "3"
+    }
+  }, {
+    "selector" : "node[ id = '66' ]",
+    "css" : {
+      "content" : "10"
+    }
+  }, {
+    "selector" : "node[ id = '67' ]",
+    "css" : {
+      "content" : "11"
+    }
+  }, {
+    "selector" : "node[ id = '68' ]",
+    "css" : {
+      "content" : "12"
+    }
+  }, {
+    "selector" : "node[ id = '69' ]",
+    "css" : {
+      "content" : "13"
+    }
+  }, {
+    "selector" : "node[ id = '70' ]",
+    "css" : {
+      "content" : "14"
+    }
+  }, {
+    "selector" : "node:selected",
+    "css" : {
+      "background-color" : "rgb(255,255,0)"
+    }
+  }, {
+    "selector" : "edge",
+    "css" : {
+      "content" : "",
+      "text-opacity" : 1.0,
+      "width" : 1.0,
+      "target-arrow-color" : "rgb(0,0,0)",
+      "opacity" : 1.0,
+      "line-style" : "solid",
+      "target-arrow-shape" : "none",
+      "font-size" : 10,
+      "source-arrow-shape" : "none",
+      "line-color" : "rgb(64,64,64)",
+      "color" : "rgb(0,0,0)",
+      "font-family" : "SansSerif.plain",
+      "font-weight" : "normal",
+      "source-arrow-color" : "rgb(0,0,0)"
+    }
+  }, {
+    "selector" : "edge:selected",
+    "css" : {
+      "line-color" : "rgb(255,0,0)"
+    }
+  } ]
+} ]
