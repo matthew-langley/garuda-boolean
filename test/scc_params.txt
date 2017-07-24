@@ -1,0 +1,11 @@
+# Minimum size of SCCs to be considered, in terms of numbers of profiles
+minSize = 10
+
+# Minimum sustainability score of SCCs to be considered
+minSustainability = 0.70
+
+# Write GML representations of identified SCCs and SSs to file
+writeSubgraphs = True
+
+# Annotate nodes in input graph with SCC/SS membership
+annotateGraph = True

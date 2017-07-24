@@ -89,7 +89,7 @@ def calculate_node_probabilities(scc):
             #print "node,total passing in the SCC%s= %s,%s" %(SCCnum,node,TotalSum)
             
             for [s,t] in list(scc.edges_iter(node)): #weight = (times of passing)/(total passing)
-                scc[s][t]['internal_weight'] = float(scc[s][t]['weight'])/float(TotalSum)
+                scc[s][t]['internalweight'] = float(scc[s][t]['weight'])/float(TotalSum)
         
         equationList = []
         count_target = 0
@@ -101,9 +101,9 @@ def calculate_node_probabilities(scc):
             for node_s in scc:  #create equation for target node for every possible pred.(if not: insert 0)
                 if node_s in t_predecessors:                    
                     if count_target == count_source: # "= node_t" -> move from right term to left term
-                        equation.append(scc[node_s][node_t]['internal_weight'])#i[node_s][node_t]-1.0+1.0
+                        equation.append(scc[node_s][node_t]['internalweight'])#i[node_s][node_t]-1.0+1.0
                     else:
-                        equation.append(scc[node_s][node_t]['internal_weight']+1.0)
+                        equation.append(scc[node_s][node_t]['internalweight']+1.0)
                 else:
                     if count_target == count_source: # "= node_t" -> move from right term to left term
                         equation.append(0.0) #(-1.0+1.0)
@@ -222,6 +222,9 @@ if __name__ == '__main__':
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('graph',
                         help='State transition graph in GML format')
+    parser.add_argument('parameters',
+                        nargs='?',
+                        help='(optional) File containing simulation parameters described below')
     parser.add_argument('--profilesOutput',
                         help='Output file destination for SCC expression profiles')
     parser.add_argument('--metricsOutput',
@@ -252,11 +255,15 @@ if __name__ == '__main__':
     if any([name.startswith('SPYDER') for name in os.environ]):
         # myArgs = 'test/test_output.gml --output test/test_output_scc_profiles.csv --annotateGraph'
         # myArgs = 'test/ES_2iL+B-A_output.gml --output test/ES_2iL+B-A_output_scc_profiles.csv --annotateGraph'
-        myArgs = 'test/test_graph_simple.gml --output Output/test_graph_simple_scc_profiles.csv --annotateGraph'
+        myArgs = 'test/test_graph_simple.gml --profilesOutput test/test_graph_simple_scc_profiles.csv --metricsOutput test/test_graph_simple_scc_metrics.csv --annotateGraph --writeSubgraphs'
         # myArgs = 'test/2017-06-30-LS/ayako-boolean-psc-jun2017-boolean-functions_output.gml --output test/2017-06-30-LS/ayako-boolean-psc-jun2017-boolean-functions_output_scc_profiles.csv'        
         args = parser.parse_args(myArgs.split())
     else:
         args = parser.parse_args()
+        
+    # If a parameter file is specified, read in parameters from there.
+    if args.parameters is not None:
+        args = read_parameters(args, args.parameters)
         
     # Make a networkx representation of the state transition graph
     G = nx.read_gml(args.graph)
@@ -300,36 +307,42 @@ if __name__ == '__main__':
                     scc.graph['expression'] = expressionProfile
                     ssList.append(scc)
     
-    # Calculate average expression profile over all SCCs in the model.
-    # Weight the contribution of each SCC based on their sustainability and 
-    # their size.
-    # NOTE: Steady states excluded from this calculation
-    modelAverageProfile = pd.Series(sum([scc.graph['expression'] * scc.graph['sustainability'] * len(scc.nodes()) for scc in sccList]) / sum([len(scc.nodes()) for scc in sccList]),
-                                    name='Weighted Average')
-    
     # Prepare to output to file
     graphName = os.path.basename(args.graph).rsplit('.', 1)[0]
-    dirName = os.path.dirname(args.output).replace('\\', '/')
-    
-    # Output expression profiles of each SCC and SS to file
-    sccProfiles = pd.concat([scc.graph['expression'] for scc in sccList + ssList], axis=1)
-    expressionProfiles = pd.concat([sccProfiles, modelAverageProfile], axis=1).transpose()
     if args.profilesOutput is None:
-        args.profilesOutput = '../Output/' + graphName + '_scc_expression.csv'    
-    expressionProfiles.to_csv(args.profilesOutput)
-    
-    # Output metrics of each SCC and SS to file
-    metrics = pd.DataFrame([pd.Series({'Size': len(scc.nodes()), 
-                                       'Edges': len(scc.edges()), 
-                                       'Sustainability': scc.graph['sustainability']}, 
-                            name=scc.graph['name']) for scc in sccList + ssList])
+        args.profilesOutput = '../Output/' + graphName + '_scc_expression.csv'
     if args.metricsOutput is None:
-        args.metricsOutput = '../Output/' + graphName + '_scc_metrics.csv'    
-    metrics.to_csv(args.metricsOutput)
+        args.metricsOutput = '../Output/' + graphName + '_scc_metrics.csv'   
+    dirName = os.path.dirname(args.profilesOutput).replace('\\', '/')
+    
+    # Output expression profiles and metrics of each SCC and SS to file
+    if len(sccList) > 0:
+        # Calculate average expression profile over all SCCs in the model.
+        # Weight the contribution of each SCC based on their sustainability and 
+        # their size.
+        # NOTE: Steady states excluded from this calculation
+        modelAverageProfile = pd.Series(sum([scc.graph['expression'] * scc.graph['sustainability'] * len(scc.nodes()) for scc in sccList]) / sum([len(scc.nodes()) for scc in sccList]),
+                                        name='Weighted Average')
+        sccProfiles = pd.concat([scc.graph['expression'] for scc in sccList + ssList], axis=1)
+        expressionProfiles = pd.concat([sccProfiles, modelAverageProfile], axis=1).transpose()
+        expressionProfiles.to_csv(args.profilesOutput)
+        # Output metrics of each SCC and SS to file
+        metrics = pd.DataFrame([pd.Series({'Size': len(scc.nodes()), 
+                                           'Edges': len(scc.edges()), 
+                                           'Sustainability': scc.graph['sustainability']}, 
+                                name=scc.graph['name']) for scc in sccList + ssList])
+        metrics.to_csv(args.metricsOutput)
+    else:
+        # Write blank csv files if no SCCs or steady states
+        with open(args.profilesOutput, 'w') as f:
+            f.write('No SCCs or steady states matching criteria were found.')
+        with open(args.metricsOutput, 'w') as f:
+            f.write('No SCCs or steady states matching criteria were found.')
     
     # Write GML for each SCC and SS if desired
     if args.writeSubgraphs is True:
         for scc in sccList + ssList:
+            del scc.graph['expression'] # Not supported by GML format
             gmlOutputFile = dirName + '/' + graphName + '_' + scc.graph['name'] + '.gml'
             nx.write_gml(scc, gmlOutputFile)
     
