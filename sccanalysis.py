@@ -87,57 +87,36 @@ def calculate_node_probabilities(scc):
         for node in scc:
             TotalSum = sum([float(scc[s][t]['weight']) for s,t in scc.edges_iter(node)])
             #print "node,total passing in the SCC%s= %s,%s" %(SCCnum,node,TotalSum)
-            
             for [s,t] in list(scc.edges_iter(node)): #weight = (times of passing)/(total passing)
                 scc[s][t]['internalweight'] = float(scc[s][t]['weight'])/float(TotalSum)
         
+        # Solve simultaneous equations based on array of node probabilities
+        # (+1.0) at the end of equation -> summation restriction
+        # Basic calculation:
+        # if node_s in scc.predecessors(node_t):                    
+        #   if node_s == node_t -> move from right term to left term
+        #     equation.append(scc[node_s][node_t]['internalweight'])#i[node_s][node_t]-1.0+1.0
+        #   else:
+        #     equation.append(scc[node_s][node_t]['internalweight']+1.0)
+        # else:
+        #   if node_s == node_t -> move from right term to left term
+        #     equation.append(0.0) #(-1.0+1.0)
+        #   else:
+        #     equation.append(1.0) #(0.0+1.0)
+        # equationList.append(equation)
+        # Code section below optimizes this calculation by pre-initializing
+        # the matrix 'left' with {1.0 if off-diagonal, 0.0 if on-diagonal},
+        # then adding edge weights.
         N = len(scc.nodes())
-        left = np.empty([N, N], dtype=float)
+        left = np.ones([N,N], dtype=float)
+        np.fill_diagonal(left, 0.0)
+        nodes = scc.nodes()
         for i in range(N):
-            node_t = scc.nodes()[i]
-            t_predecessors = set(scc.predecessors(node_t))
-            for j in range(N):
-                node_s = scc.nodes()[j]
-                if node_s in t_predecessors:                    
-                    if i == j: # "= node_t" -> move from right term to left term
-                        left[i,j] = scc[node_s][node_t]['internalweight'] #i[node_s][node_t]-1.0+1.0
-                    else:
-                        left[i,j] = scc[node_s][node_t]['internalweight']+1.0
-                else:
-                    if i == j: # "= node_t" -> move from right term to left term
-                        left[i,j] = 0.0 #(-1.0+1.0)
-                    else:
-                        left[i,j] = 1.0 #(0.0+1.0)
-        
-        """
-        equationList = []
-        count_target = 0
-        for node_t in scc:
-            equation = []
-            count_source = 0
-            t_predecessors = set(scc.predecessors(node_t))
-            ### (+1.0) at the end of equation -> summation restriction
-            for node_s in scc:  #create equation for target node for every possible pred.(if not: insert 0)
-                if node_s in t_predecessors:                    
-                    if count_target == count_source: # "= node_t" -> move from right term to left term
-                        equation.append(scc[node_s][node_t]['internalweight'])#i[node_s][node_t]-1.0+1.0
-                    else:
-                        equation.append(scc[node_s][node_t]['internalweight']+1.0)
-                else:
-                    if count_target == count_source: # "= node_t" -> move from right term to left term
-                        equation.append(0.0) #(-1.0+1.0)
-                    else:
-                        equation.append(1.0) #(0.0+1.0)
-    
-                count_source += 1
-    
-            equationList.append(equation)
-            count_target += 1
-        """
-            
-        
-        ##### solve simultaneous equations ==== Array of Node Probability for (i.nodes())####
-        # left = np.array(equationList)
+            node_t = nodes[i]
+            node_s_list = list(scc.predecessors(node_t))
+            for node_s in node_s_list:
+                j = nodes.index(node_s)
+                left[i,j] += scc[node_s][node_t]['internalweight']
         right = np.array(np.ones((len(scc),1)))
         nodeProbabilities = np.linalg.solve(left,right)
         return nodeProbabilities
@@ -212,13 +191,9 @@ def calculate_sustainability(scc, nodeProbabilities=None):
     totaloutweight = 0.0
     for i in range(len(scc.nodes())):
         node = scc.nodes()[i]
-        pass_count = 0
-        internal_count = 0
-        for s,t in edgeList:
-            if s == node: # Count as passing
-                pass_count += 1
-                if t in sccSet: # Not outflux
-                    internal_count += 1
+        thisEdgeList = [(s,t) for s,t in edgeList if s == node]
+        pass_count = len(thisEdgeList)
+        internal_count = sum((t in sccSet) for s,t in thisEdgeList)
         outweight = float(nodeProbabilities[i]) * float(internal_count) / float(pass_count)
         totaloutweight += outweight
     
