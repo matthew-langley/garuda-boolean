@@ -91,6 +91,25 @@ def calculate_node_probabilities(scc):
             for [s,t] in list(scc.edges_iter(node)): #weight = (times of passing)/(total passing)
                 scc[s][t]['internalweight'] = float(scc[s][t]['weight'])/float(TotalSum)
         
+        N = len(scc.nodes())
+        left = np.empty([N, N], dtype=float)
+        for i in range(N):
+            node_t = scc.nodes()[i]
+            t_predecessors = set(scc.predecessors(node_t))
+            for j in range(N):
+                node_s = scc.nodes()[j]
+                if node_s in t_predecessors:                    
+                    if i == j: # "= node_t" -> move from right term to left term
+                        left[i,j] = scc[node_s][node_t]['internalweight'] #i[node_s][node_t]-1.0+1.0
+                    else:
+                        left[i,j] = scc[node_s][node_t]['internalweight']+1.0
+                else:
+                    if i == j: # "= node_t" -> move from right term to left term
+                        left[i,j] = 0.0 #(-1.0+1.0)
+                    else:
+                        left[i,j] = 1.0 #(0.0+1.0)
+        
+        """
         equationList = []
         count_target = 0
         for node_t in scc:
@@ -114,10 +133,11 @@ def calculate_node_probabilities(scc):
     
             equationList.append(equation)
             count_target += 1
+        """
             
         
         ##### solve simultaneous equations ==== Array of Node Probability for (i.nodes())####
-        left = np.array(equationList)
+        # left = np.array(equationList)
         right = np.array(np.ones((len(scc),1)))
         nodeProbabilities = np.linalg.solve(left,right)
         return nodeProbabilities
@@ -255,8 +275,9 @@ if __name__ == '__main__':
     if any([name.startswith('SPYDER') for name in os.environ]):
         # myArgs = 'test/test_output.gml --output test/test_output_scc_profiles.csv --annotateGraph'
         # myArgs = 'test/ES_2iL+B-A_output.gml --output test/ES_2iL+B-A_output_scc_profiles.csv --annotateGraph'
-        myArgs = 'test/test_graph_simple.gml --profilesOutput test/test_graph_simple_scc_profiles.csv --metricsOutput test/test_graph_simple_scc_metrics.csv --annotateGraph --writeSubgraphs'
+        # myArgs = 'test/test_graph_simple.gml --profilesOutput test/test_graph_simple_scc_profiles.csv --metricsOutput test/test_graph_simple_scc_metrics.csv --annotateGraph --writeSubgraphs'
         # myArgs = 'test/2017-06-30-LS/ayako-boolean-psc-jun2017-boolean-functions_output.gml --output test/2017-06-30-LS/ayako-boolean-psc-jun2017-boolean-functions_output_scc_profiles.csv'        
+        myArgs = 'test/ayako-boolean-psc-jun2017-output-2iL.gml test/test_scc_params.txt'
         args = parser.parse_args(myArgs.split())
     else:
         args = parser.parse_args()
