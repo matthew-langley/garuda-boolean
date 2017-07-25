@@ -165,11 +165,14 @@ def calculate_expression_profile(scc, nodeProbabilities=None):
         return pd.Series(averageExpr.flatten(), index=nodeProfiles.index, name=scc.graph['name'], dtype=float)
         
 
-def calculate_sustainability(scc, nodeProbabilities=None):
+def calculate_sustainability(G, scc, nodeProbabilities=None):
     """
     Calculates the sustainability score of an SCC.
     
     Args:
+        g (nx.DiGraph)
+            The complete state transition graph (needed to calculate outgoing 
+            trajectories)
         scc (nx.DiGraph)
             The SCC/steady state subgraph
         nodeProbabilities (np.array)
@@ -187,13 +190,12 @@ def calculate_sustainability(scc, nodeProbabilities=None):
         nodeProbabilities = calculate_node_probabilities(scc)
     
     sccSet = set(scc)
-    edgeList = [(s,t) for s,t in G.edges() if ((s in sccSet) or (t in sccSet))]
     totaloutweight = 0.0
     for i in range(len(scc.nodes())):
-        node = scc.nodes()[i]
-        thisEdgeList = [(s,t) for s,t in edgeList if s == node]
-        pass_count = len(thisEdgeList)
-        internal_count = sum((t in sccSet) for s,t in thisEdgeList)
+        s = scc.nodes()[i]
+        edges = {t: v['weight'] for (t,v) in G[s].items()}
+        pass_count = sum(edges.values())
+        internal_count = sum(v for t,v in edges.items() if t in sccSet)
         outweight = float(nodeProbabilities[i]) * float(internal_count) / float(pass_count)
         totaloutweight += outweight
     
@@ -279,7 +281,7 @@ if __name__ == '__main__':
             if len(scc.nodes()) > args.minSize:
                 # Calculate node probabilities and sustainability
                 nodeProbabilities = calculate_node_probabilities(scc)
-                sustainability = calculate_sustainability(scc, nodeProbabilities)
+                sustainability = calculate_sustainability(G, scc, nodeProbabilities)
                 # Only keep SCCs with sustainability larger than minimum 
                 # threshold (user-specified)
                 if sustainability > args.minSustainability:
