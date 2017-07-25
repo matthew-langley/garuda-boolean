@@ -9,7 +9,7 @@ import networkx as nx
 import numpy as np
 
 # Make a networkx representation of the state transition graph
-G = nx.read_gml('test/ayako-boolean-psc-jun2017-output-2iL.gml')
+G = nx.read_gml('test/ayako-boolean-psc-jun2017-output-LS.gml')
 
 # CLear any existing membership annotations
 for n in G.nodes():
@@ -35,12 +35,15 @@ N = len(scc.nodes())
 left = np.ones([N,N], dtype=float)
 np.fill_diagonal(left, 0.0)
 nodes = scc.nodes()
+count = 0
 for i in range(N):
     node_t = nodes[i]
     node_s_list = list(scc.predecessors(node_t))
     for node_s in node_s_list:
         j = nodes.index(node_s)
         left[i,j] += scc[node_s][node_t]['internalweight']
+        count += 1
+    print count
 
 right = np.array(np.ones((len(scc),1)))
 nodeProbabilities = np.linalg.solve(left,right)
