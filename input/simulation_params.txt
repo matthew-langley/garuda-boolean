@@ -1,0 +1,19 @@
+# Number of simulation runs to perform
+runs = 250
+
+# Number of Boolean update steps per simulation
+steps = 10
+
+# Simulation mode (choose from: async, sync)
+# sync: All genes are updated at each step
+# async: Random subset of genes are updated at each step
+mode = async
+
+# Write resulting state dictionary to file
+writeStateDict = True
+
+# Write resulting edge dictionary to file
+writeEdgeDict = True
+
+# Number of processes used to run simulation
+processes = 1

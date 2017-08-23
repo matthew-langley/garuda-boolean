@@ -252,9 +252,9 @@ if __name__ == '__main__':
     if any([name.startswith('SPYDER') for name in os.environ]):
         # myArgs = 'test/test_output.gml --output test/test_output_scc_profiles.csv --annotateGraph'
         # myArgs = 'test/ES_2iL+B-A_output.gml --output test/ES_2iL+B-A_output_scc_profiles.csv --annotateGraph'
-        # myArgs = 'test/test_graph_simple.gml --profilesOutput test/test_graph_simple_scc_profiles.csv --metricsOutput test/test_graph_simple_scc_metrics.csv --annotateGraph --writeSubgraphs'
+        myArgs = 'test/test_graph_simple.gml --profilesOutput test/test_graph_simple_scc_profiles.csv --metricsOutput test/test_graph_simple_scc_metrics.csv --annotateGraph --writeSubgraphs'
         # myArgs = 'test/2017-06-30-LS/ayako-boolean-psc-jun2017-boolean-functions_output.gml --output test/2017-06-30-LS/ayako-boolean-psc-jun2017-boolean-functions_output_scc_profiles.csv'        
-        myArgs = 'test/ayako-boolean-psc-jun2017-output-2iL.gml test/test_scc_params.txt'
+        # myArgs = 'test/ayako-boolean-psc-jun2017-output-2iL.gml test/test_scc_params.txt'
         args = parser.parse_args(myArgs.split())
     else:
         args = parser.parse_args()
