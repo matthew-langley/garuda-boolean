@@ -250,11 +250,7 @@ if __name__ == '__main__':
     # Switch between listening to command-line arguments or hard-coded 
     # arguments depending on whether running in IDE or from cmd.
     if any([name.startswith('SPYDER') for name in os.environ]):
-        # myArgs = 'test/test_output.gml --output test/test_output_scc_profiles.csv --annotateGraph'
-        # myArgs = 'test/ES_2iL+B-A_output.gml --output test/ES_2iL+B-A_output_scc_profiles.csv --annotateGraph'
-        myArgs = 'test/test_graph_simple.gml --profilesOutput test/test_graph_simple_scc_profiles.csv --metricsOutput test/test_graph_simple_scc_metrics.csv --annotateGraph --writeSubgraphs'
-        # myArgs = 'test/2017-06-30-LS/ayako-boolean-psc-jun2017-boolean-functions_output.gml --output test/2017-06-30-LS/ayako-boolean-psc-jun2017-boolean-functions_output_scc_profiles.csv'        
-        # myArgs = 'test/ayako-boolean-psc-jun2017-output-2iL.gml test/test_scc_params.txt'
+        myArgs = 'input/test_graph_simple.gml --profilesOutput Output/test_graph_simple_scc_profiles.csv --metricsOutput Output/test_graph_simple_scc_metrics.csv --annotateGraph --writeSubgraphs'
         args = parser.parse_args(myArgs.split())
     else:
         args = parser.parse_args()
@@ -308,9 +304,9 @@ if __name__ == '__main__':
     # Prepare to output to file
     graphName = os.path.basename(args.graph).rsplit('.', 1)[0]
     if args.profilesOutput is None:
-        args.profilesOutput = '../Output/' + graphName + '_scc_expression.csv'
+        args.profilesOutput = 'Output/' + graphName + '_scc_expression.csv'
     if args.metricsOutput is None:
-        args.metricsOutput = '../Output/' + graphName + '_scc_metrics.csv'   
+        args.metricsOutput = 'Output/' + graphName + '_scc_metrics.csv'   
     dirName = os.path.dirname(args.profilesOutput).replace('\\', '/')
     
     # Output expression profiles and metrics of each SCC and SS to file
