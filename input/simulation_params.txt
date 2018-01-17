@@ -1,5 +1,5 @@
 # Number of simulation runs to perform
-runs = 250
+runs = 50
 
 # Number of Boolean update steps per simulation
 steps = 10

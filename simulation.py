@@ -456,7 +456,8 @@ if __name__ == '__main__':
     # Switch between listening to command-line arguments or hard-coded 
     # arguments depending on whether running in IDE or from cmd.
     if any([name.startswith('SPYDER') for name in os.environ]):
-        myArgs = 'test/test_rules.txt test/test_initials.txt --output test/test_output.gml --runs 50 --steps 10 --processes 2 --async --writeStateDict --writeEdgeDict'
+        #myArgs = 'input/test_network.txt input/test_initials.txt --output Output/test_output.gml --runs 50 --steps 10 --processes 2 --async --writeStateDict --writeEdgeDict'
+        myArgs = 'input/boolean-psc-jun2017-boolean-functions.txt input/boolean-psc-jun2017-initial-conditions-2iL.txt input/simulation_params.txt'
         args = parser.parse_args(myArgs.split())
     else:
         args = parser.parse_args()
@@ -506,7 +507,7 @@ if __name__ == '__main__':
     else:
         graphName = args.rules.rsplit('.', 1)[0]
     if args.output is None:
-        args.output = '../Output/' + graphName + '_output.gml'
+        args.output = 'Output/' + graphName + '_output.gml'
     write_gml(stateDict, edgeDict, args.output, graphName)
     
     # If requested, write state and/or edge dictionaries to file.

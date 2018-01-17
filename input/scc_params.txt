@@ -7,7 +7,7 @@ minSize = 10
 minSustainability = 0.70
 
 # Write GML representations of identified SCCs and SSs to file
-writeSubgraphs = False
+writeSubgraphs = True
 
 # Annotate nodes in input graph with SCC/SS membership
 annotateGraph = True
