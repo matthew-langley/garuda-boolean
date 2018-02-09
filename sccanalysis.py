@@ -149,7 +149,7 @@ def calculate_expression_profile(scc, nodeProbabilities=None):
     
     # If steady state, convert dictionary to Series and return
     if len(scc.nodes()) == 1:
-        n = scc.nodes()[0]
+        n = list(scc.nodes())[0]
         return pd.Series(scc.node[n], dtype=float, name=scc.graph['name'])
         
     # Else calculate the node probabilities of SCC and do the weighted average
@@ -192,7 +192,7 @@ def calculate_sustainability(G, scc, nodeProbabilities=None):
     sccSet = set(scc)
     totaloutweight = 0.0
     for i in range(len(scc.nodes())):
-        s = scc.nodes()[i]
+        s = list(scc.nodes())[i]
         edges = {t: v['weight'] for (t,v) in G[s].items()}
         pass_count = sum(edges.values())
         internal_count = sum(v for t,v in edges.items() if t in sccSet)
@@ -250,7 +250,8 @@ if __name__ == '__main__':
     # Switch between listening to command-line arguments or hard-coded 
     # arguments depending on whether running in IDE or from cmd.
     if any([name.startswith('SPYDER') for name in os.environ]):
-        myArgs = 'input/test_graph_simple.gml --profilesOutput Output/test_graph_simple_scc_profiles.csv --metricsOutput Output/test_graph_simple_scc_metrics.csv --annotateGraph --writeSubgraphs'
+        #myArgs = 'input/test_graph_simple.gml --profilesOutput Output/test_graph_simple_scc_profiles.csv --metricsOutput Output/test_graph_simple_scc_metrics.csv --annotateGraph --writeSubgraphs'
+        myArgs = 'input/boolean-psc-jan232018-boolean-functions_output.gml input/scc_params.txt'
         args = parser.parse_args(myArgs.split())
     else:
         args = parser.parse_args()
@@ -293,7 +294,7 @@ if __name__ == '__main__':
             # So need to check if SCC consists of only one node with only one
             # (self-edge). i.e. set of 
             if scc.edges() != []:
-                sourceNode = scc.edges()[0][0]
+                sourceNode = list(scc.nodes())[0]
                 if set([sourceNode]) == set(G.successors(sourceNode)):
                     scc.graph['name'] = 'SS' + str(len(ssList) + 1)
                     scc.graph['sustainability'] = 1.0  # By definition
@@ -325,6 +326,15 @@ if __name__ == '__main__':
                                            'Edges': len(scc.edges()), 
                                            'Sustainability': scc.graph['sustainability']}, 
                                 name=scc.graph['name']) for scc in sccList + ssList])
+        metrics.to_csv(args.metricsOutput)
+    elif len(ssList) > 0:
+        ssProfiles = pd.concat([ss.graph['expression'] for ss in ssList], axis=1)
+        expressionProfiles = ssProfiles.transpose()
+        expressionProfiles.to_csv(args.profilesOutput)
+        metrics = pd.DataFrame([pd.Series({'Size': len(ss.nodes()), 
+                                           'Edges': len(ss.edges()), 
+                                           'Sustainability': ss.graph['sustainability']}, 
+                                name=ss.graph['name']) for ss in ssList])
         metrics.to_csv(args.metricsOutput)
     else:
         # Write blank csv files if no SCCs or steady states
